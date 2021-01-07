@@ -6,13 +6,15 @@ import os
 import random
 
 class buildAnyShape:
-    def __init__(self, sim, volume, domains, membrane_area):
+    def __init__(self, sim, volume, domains, voxel_membrane_area, voxel_PSD):
         ## 
         ## sim.siteTypes['domain name'] may be different from volume_id.
         #
-        # @param sim      RDMESimulation object
-        # @param volume   volume_id
+        # @param sim           RDMESimulation object
+        # @param volume        Three-dimentional array that indicates volume_id
         # @param domains_ dict {'domain name', volume_id}
+        # @param voxel_membrane_area  Three-dimentional array that specifies membrane_voxels > 0
+        # @param voxel_PSD   Three-dimentional array that specifies PSD_voxels > 0
         # @return self
 
         self.sim = sim
@@ -57,17 +59,23 @@ class buildAnyShape:
                         if (volume_mod[x,y,z] == sim.siteTypes[domain_name]):
                             self.locs[domain_name].append((x,y,z))
 
-
-        # Extract membrane regions
-        self.memb_voxel_locs = np.nonzero(membrane_area > 0)
-        self.memb_voxel_prob = membrane_area[self.memb_voxel_locs[0],\
-                                             self.memb_voxel_locs[1],\
-                                             self.memb_voxel_locs[2] ]
-        # print('self.memb_voxel_locs[0].shape[0]: ', self.memb_voxel_locs[0].shape[0])
         
         self.num_voxels = dict.fromkeys(domains)
         for domain_name in domains:
             self.num_voxels[domain_name] = len(self.locs[domain_name])
+
+
+        # Extract the regions of membranes and PSDs
+        self.memb_voxel_locs = np.nonzero(voxel_membrane_area > 0)
+        self.memb_voxel_prob = voxel_membrane_area[self.memb_voxel_locs[0],\
+                                             self.memb_voxel_locs[1],\
+                                             self.memb_voxel_locs[2] ]
+        self.PSD_voxel_locs = np.nonzero(voxel_membrane_area*voxel_PSD > 0)
+        self.PSD_voxel_prob = voxel_membrane_area[self.PSD_voxel_locs[0],\
+                                             self.PSD_voxel_locs[1],\
+                                             self.PSD_voxel_locs[2] ]
+         # print('self.memb_voxel_locs[0].shape[0]: ', self.memb_voxel_locs[0].shape[0])
+
         
         #print("len(locs['default'])   : ", len(self.locs['default']))
         #print("len(locs['cytoplasm']) : ", len(self.locs['cytoplasm']))
@@ -96,6 +104,19 @@ class buildAnyShape:
         for x, y, z, num in zip(self.memb_voxel_locs[0], \
                                 self.memb_voxel_locs[1], \
                                 self.memb_voxel_locs[2], \
+                                molecular_numbers):
+            # print('x,y,z, num: ', x,y,z, num)
+            for i in range(num):
+                self.sim.lattice.addParticle(x, y, z, particleNum)
+
+    def addPSDMolecules(self, molecular_name, density):
+        ##
+        particleNum=self.sim.particleMap[molecular_name]
+        molecular_numbers = np.random.binomial(density, self.PSD_voxel_prob)
+        # print('np.sum(molecular_numbers): ', np.sum(molecular_numbers))
+        for x, y, z, num in zip(self.PSD_voxel_locs[0], \
+                                self.PSD_voxel_locs[1], \
+                                self.PSD_voxel_locs[2], \
                                 molecular_numbers):
             # print('x,y,z, num: ', x,y,z, num)
             for i in range(num):

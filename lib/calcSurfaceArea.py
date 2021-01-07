@@ -5,15 +5,16 @@ import h5py
 import numpy as np
 import os
 
-def calcSurfaceArea(volume, pitch, num_iterations = 15):
+def calcSurfaceArea(pitch, volume, PSD = None):
 	#
-	# @param volume			input volume			(numpy 3d array, bool preferred)
 	# @param pitch			unit length per voxel		(float)
-	# @param num_iterations		iter num for smoothing		(int)
+	# @param volume			input volume			(numpy 3d array, bool preferred)
+	## @param num_iterations		iter num for smoothing		(int)
 	# @return surface_areas		surface areas in voxel space(numpy 3d array)
 	# @return smooth_vertices	vertices of smoothing mesh	(numpy 3xX array)
 	# @return smooth_faces		faces of smoothing mesh		(numpy 3xX array)
         # @return Smooth_area_per_face  Areas of faces			(numpy 1xX array)
+
 
 	volume = volume.astype(np.bool)
 	print('volume.shape: ', volume.shape)
@@ -30,13 +31,27 @@ def calcSurfaceArea(volume, pitch, num_iterations = 15):
 	v_march, f_march, normals, values = measure.marching_cubes(volume, 0.5, spacing=(1,1,1))
 	v_march = v_march - 1
 
+        # PSD
+	if PSD is not None:
+                xvnum, yvnum, zvnum = PSD.shape
+                face_loc   = ( v_march[f_march[:,0]]+v_march[f_march[:,1]]+v_march[f_march[:,2]] ) / 3.0
+                face_voxel = np.round( face_loc ).astype(np.int)
+                face_voxel = (face_voxel < 0) + (face_voxel >= 0) * face_voxel
+                face_voxel[:,0] = (face_voxel[:,0] >= xvnum) * (xvnum-1) + (face_voxel[:,0] < xvnum) * face_voxel[:,0]
+                face_voxel[:,1] = (face_voxel[:,1] >= yvnum) * (yvnum-1) + (face_voxel[:,1] < yvnum) * face_voxel[:,1]
+                face_voxel[:,2] = (face_voxel[:,2] >= zvnum) * (zvnum-1) + (face_voxel[:,2] < zvnum) * face_voxel[:,2]
+                id_face_psd = (PSD[face_voxel[:,0],face_voxel[:,1],face_voxel[:,2]] > 0)
+
 	# Smoothing
 	trimesh.constants.tol.merge = 1e-7
 	mesh = trimesh.Trimesh(vertices=v_march, faces=f_march)
-	mesh_smooth = trimesh.smoothing.filter_laplacian(mesh, iterations=15)
-	mesh.merge_vertices()
-	mesh.remove_degenerate_faces()
-	mesh.remove_duplicate_faces()
+	mesh_smooth = trimesh.smoothing.filter_laplacian(mesh, iterations=5)
+
+	if PSD is None:
+	        mesh.merge_vertices()
+	        mesh.remove_degenerate_faces()
+	        mesh.remove_duplicate_faces()
+
 	v_smooth = mesh_smooth.vertices
 	f_smooth = mesh_smooth.faces
 
@@ -80,7 +95,11 @@ def calcSurfaceArea(volume, pitch, num_iterations = 15):
 	smooth_vertices = v_smooth * pitch
 	smooth_faces    = f_smooth
 	smooth_area_per_face = f_areas * pitch * pitch
-	return surface_areas, smooth_vertices, smooth_faces, smooth_area_per_face
+	if PSD is not None:
+	        return surface_areas, smooth_vertices, smooth_faces, smooth_area_per_face, id_face_psd
+	else:
+                return surface_areas, smooth_vertices, smooth_faces, smooth_area_per_face
+
 
 
 
