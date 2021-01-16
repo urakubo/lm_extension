@@ -13,11 +13,11 @@ from lib.lmUtils import buildAnyShape
 from setMolecules import setMolecules
 
 
-filename_lm='CA1_small_model.lm'
-filename_morph='CA1_small.h5'
 
-#filename_lm='CA1_ssmall_model.lm'
+filename_morph='CA1_small.h5'
 #filename_morph='CA1_ssmall.h5'
+
+filename_lm='lms/_model.lm'
 
 if os.path.exists(filename_lm):
     os.system('rm '+filename_lm)
@@ -110,8 +110,8 @@ print('Set up times')
 sim.setTimestep(microsecond(3.0)) # 3.2 too big, 2.5 OK
 sim.setWriteInterval(0.05)
 sim.setLatticeWriteInterval(0.05)
-#sim.setSimulationTime(1.0)
-sim.setSimulationTime(2.0)
+sim.setSimulationTime(20.0)
+#sim.setSimulationTime(2.0)
 
 
 print('Save simulation setup.')

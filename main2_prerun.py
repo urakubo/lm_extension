@@ -6,11 +6,8 @@ import numpy as np
 import os, sys, shutil
 import subprocess as s
 
-filename_lm='CA1_small_model.lm'
-filename_prerun  = 'CA1_small_run_pre.lm'
-
-# filename_lm = 'CA1_ssmall_model.lm'
-# filename_prerun = 'CA1_ssmall_run_pre.lm'
+filename_lm='lms/_model.lm'
+filename_prerun  = 'lms/_prerun_result.lm'
 
 if os.path.isfile(filename_prerun):
     print('Prerun file exists : ', filename_prerun)

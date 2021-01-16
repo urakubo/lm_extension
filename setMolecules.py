@@ -11,7 +11,12 @@ class setMolecules:
     def __init__(self, sim, domain_name):
         self.sim    = sim
         self.domain_name = domain_name
+        self.lx = sim.lattice.getXSize()
+        self.ly = sim.lattice.getYSize()
+        self.lz = sim.lattice.getZSize()
 
+        print('lx, ly, lz:',  self.lx,  self.ly,  self.lz )
+        
         # Cytosolic molecules
         self.cyt_mol  = ['Ca','N0C0','N0C1','N0C2','N1C0','N1C1','N1C2',\
                          'N2C0','N2C1','N2C2','CB','CBCa',\
@@ -61,15 +66,15 @@ class setMolecules:
 
 
     def setReactions(self):
-        # scale = 157863.12 # 6.022e23 *64^3 e-24
 
         Spacing = self.sim.latticeSpacing
-        volume_in_L  = Spacing * Spacing * Spacing * 1000
+        volume_in_L  = Spacing * Spacing * Spacing * 1000\
+                       * self.lx * self.ly * self.lz
         V_Na         = NA * volume_in_L # (number per 1mol) * volume_in_L = NA*V
-        print('Spacing (m)', Spacing)
-        print('V_Na: ', V_Na)
-        on = 1e6 # uM-1 => M-1
-        on = on / V_Na
+        on = 1e6 / V_Na # uM-1 => M-1
+        # print('Spacing (m)', Spacing)
+        # print('V_Na: ', V_Na)
+
         
         # Ca-CaM binding reactions
         kon_CB   = on * 75

@@ -1,19 +1,27 @@
 import numpy as np
 import h5py
 
-input_lm_files    = ['CA1_small_run_pre.lm']
-input_lm_files    = ['CA1_ssmall_run_pre.lm']
-#output_file = "test3"
-fig_dir = 'figs'
+input_lm_files    = ['_prerun_result.lm']
+output_figfile_prefix = "Pre"
+output_figfile_dir    = 'figs'
 ## Offscreen rendering
 # mlab.options.offscreen = True
-S = {'Ca':1, 'N0C0':2, 'N0C1':3, 'N0C2':4, 'N1C0':5,\
-           'N1C1':6,'N1C2':7, 'N2C0':8, 'N2C1':9, 'N2C2':10,\
-           'CB':11, 'CBCa':12, 'CN':13, 'N0C0_CN':14, 'N0C1_CN':15,\
-           'N0C2_CN':16, 'N1C0_CN':17, 'N1C1_CN':18, 'N1C2_CN':19,\
-           'N2C0_CN':20, 'N2C1_CN':21, 'N2C2_CN':22, 'PMCA':23,\
-           'PMCA_Ca':24, 'NCX':25, 'NCX_Ca':26, 'NR':27,
-           'NR_Glu':28, 'NR_O': 29}
+
+
+## Define molecules and volume
+cyt = 1
+NA  = 6.022e23
+f = h5py.File(input_lm_files[0],'r')
+data = f['Model']['Diffusion']['LatticeSites'][()]
+num_voxels = np.count_nonzero(data == cyt)
+Spacing = f['Model']['Diffusion'].attrs['latticeSpacing']
+volume_in_L  = num_voxels * Spacing * Spacing * Spacing * 1000
+mnames  = f['Parameters'].attrs['speciesNames'].decode().split(',')
+S = {}
+for i in range(len(mnames)):
+    S[mnames[i]] = i+1
+f.close()
+##
 
 Timepoints = [0]
 Numbers    = np.zeros((1,len(S)),int)
@@ -35,6 +43,11 @@ for i, lmfile in enumerate(input_lm_files):
     
 #print('TimePoints: ', Timepoints)
 #print('Numbers   : ', Numbers)
+print('Num voxels  : ', num_voxels)
+print('Spacing     : ', Spacing)
+print('Volume in fL: ', volume_in_L * 1e15)
+uMs = Numbers / NA * 1e6 / volume_in_L
+Numbers = uMs
 
 import matplotlib.pyplot as plt
 
@@ -45,8 +58,8 @@ Targ = 'Ca'
 Targ = 'CaM'
 Targ = 'CaN2'
 Targ = 'CaN'
-Targ = 'Ca'
-Targ = 'CaM'
+Targ = 'CaN'
+#Targ = 'CaM'
 
 fig = plt.figure(figsize=(6,4))
 ax=fig.add_subplot(111)
@@ -68,7 +81,7 @@ elif Targ == 'CaN2':
 
 elif Targ == 'CaM':
     CaMs = ['N0C0','N0C1' ];
-    CaMs = ['N0C2','N1C0', 'N1C1','N1C2','N2C0', 'N2C1', 'N2C2'];
+    #CaMs = ['N0C2','N1C0', 'N1C1','N1C2','N2C0', 'N2C1', 'N2C2'];
     for cam in CaMs:
         ax.plot(Timepoints, Numbers[:,S[cam]-1], label=cam )
 
@@ -82,10 +95,11 @@ ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 plt.title(Targ)
 plt.xlabel('Time (s)')
-plt.ylabel('Number')
+#plt.ylabel('Number')
+plt.ylabel('(uM)')
 hans, labs = ax.get_legend_handles_labels()
 ax.legend(handles=hans,labels=labs, frameon=False)
-plt.savefig(fig_dir+'/Prof_'+Targ+'.pdf')
-plt.savefig(fig_dir+'/Prof_'+Targ+'.png',dpi=150)
+plt.savefig(output_figfile_dir+'/'+ output_figfile_prefix + '_' + Targ + '.pdf')
+plt.savefig(output_figfile_dir+'/'+ output_figfile_prefix + '_' + Targ + '.png',dpi=150)
 plt.show()
 

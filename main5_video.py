@@ -8,8 +8,8 @@ import trimesh
 input_morpho_file = "CA1_small.h5"
 input_lm_files    = ['CA1_small_run_pre.lm','CA1_small_run_stim.lm']
 
-# input_morpho_file = "CA1_ssmall.h5"
-# input_lm_files    = ['CA1_ssmall_run_pre.lm','CA1_ssmall_run_stim.lm']
+input_morpho_file = "CA1_small.h5"
+input_lm_files    = ['_prerun_result.lm','_stimrun_result.lm']
 
 output_file = "test_"
 
