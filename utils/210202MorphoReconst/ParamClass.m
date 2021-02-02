@@ -116,9 +116,9 @@ classdef ParamClass < handle
 %%
 %%
 		function Addpaths(obj)
-			for i = 1:numel(obj.DIRS_SUBROUTINES);
-				addpath(strcat(obj.PATH_SUBROUTINES, obj.F, obj.DIRS_SUBROUTINES{i}));
-			end;
+%			for i = 1:numel(obj.DIRS_SUBROUTINES);
+%				addpath(strcat(obj.PATH_SUBROUTINES, obj.F, obj.DIRS_SUBROUTINES{i}));
+%			end;
 			fontName = 'Arial';
 			set(groot,'defaultAxesXColor','k'); % factory is [0.15,0.15,0.15]
 			set(groot,'defaultAxesYColor','k');

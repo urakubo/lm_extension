@@ -20,6 +20,10 @@ function [TargetDomainI, ZZ] = ...
 		%%% Load data
 		[namepoly, polyl, polynum] = ...
 			DxfDataLoader(FileDir, char(SortedTargetFileNames(i)));
+		
+		% fprintf('Layer %s\n', char(SortedTargetFileNames(i))    );
+		% namepoly 
+		
 		%%% Fill holes and binarization
 		Cyt   = Canps;
 		for j = 1:polynum;
