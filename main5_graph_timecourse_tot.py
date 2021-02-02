@@ -1,8 +1,21 @@
 import numpy as np
 import h5py
 import os
+import matplotlib.pyplot as plt
 
-input_lm_files    = ['_prerun_result.lm','_stimrun_result.lm']
+Targ = {'N0C2':['N0C2'], 'N1C0':['N1C0'], 'N1C1':['N1C1'],\
+        'N1C2':['N1C2'], 'N2C0':['N2C0'], 'N2C1':['N2C1'], 'N2C2':['N2C2']};
+Targ = {'CaM':['N0C2','N1C0', 'N1C1','N1C2','N2C0', 'N2C1', 'N2C2']};
+Targ = {'NMDAR': ['NR_Glu','NR_O']};
+Targ = {'Ca':['Ca']}
+Targ = {'N0C0_CN':['N0C0_CN'], 'N0C1_CN':['N0C1_CN'], 'N0C2_CN':['N0C2_CN'],\
+        'N1C0_CN':['N1C0_CN'], 'N1C1_CN':['N1C1_CN'], 'N1C2_CN':['N1C2_CN'],\
+        'N2C0_CN':['N2C0_CN'], 'N2C1_CN':['N2C1_CN'], 'N2C2_CN':['N2C2_CN']}
+Targ = {'CaN':['N0C0_CN', 'N0C1_CN', 'N0C2_CN', 'N1C0_CN', 'N1C1_CN', 'N1C2_CN',\
+               'N2C0_CN','N2C1_CN','N2C2_CN']}
+
+title = sorted(Targ.keys())[0]
+
 input_lm_folder    = 'lms'
 input_lm_files    = ['_prerun_result.lm',\
                      '_stimrun_00.lm',\
@@ -34,8 +47,6 @@ input_lm_files    = ['_prerun_result.lm',\
 
 output_figfile_prefix = "Stim"
 output_figfile_dir    = 'figs'
-## Offscreen rendering
-# mlab.options.offscreen = True
 
 ## Define molecules and volume
 cyt = 1
@@ -65,10 +76,6 @@ for i, lmfile in enumerate(input_lm_files):
     #
     tmp = f['Simulations']['0000001']['SpeciesCounts'][()]
     Numbers = np.append(Numbers, tmp[1:,:], axis=0)
-    if i == 0:
-        print(S.keys())
-        print('Initial numbers: ', tmp[0,:])
-    #
     f.close()
     
 #print('TimePoints: ', Timepoints)
@@ -78,54 +85,31 @@ uMs = Numbers / NA * 1e6 / volume_in_L
 Numbers = uMs
 
 
-import matplotlib.pyplot as plt
-
-Targ = 'Ca'
-Targ = 'CaN2'
-Targ = 'Ca'
-#Targ = 'NMDAR'
-#Targ = 'CaM'
-#Targ = 'Ca'
-Targ = 'CaN'
+toffset = 20
+t = np.array(Timepoints)-toffset
 
 fig = plt.figure(figsize=(6,4))
 ax=fig.add_subplot(111)
 
-if Targ == 'Ca':
-    ax.plot(Timepoints, Numbers[:,S[Targ]-1], label=Targ)
+for k, v in Targ.items():
+    conc = np.zeros_like( uMs[:,S[v[0]]-1] )
+    for iv in v:
+        conc += uMs[:,S[iv]-1]
+    ax.plot(t, conc, label=k)
 
-elif Targ == 'CaN':
-    CaN = Numbers[:,S['N0C0_CN']-1] + Numbers[:,S['N0C1_CN']-1] + Numbers[:,S['N0C2_CN']-1]\
-          + Numbers[:,S['N1C0_CN']-1] + Numbers[:,S['N1C1_CN']-1] + Numbers[:,S['N1C2_CN']-1]\
-          + Numbers[:,S['N2C0_CN']-1] + Numbers[:,S['N2C1_CN']-1] + Numbers[:,S['N2C2_CN']-1]
-    ax.plot(Timepoints, CaN, label=Targ)
-
-elif Targ == 'CaN2':
-    CaNs = ['N0C0_CN', 'N0C1_CN', 'N0C2_CN', 'N1C0_CN', 'N1C1_CN', 'N1C2_CN',\
-            'N2C0_CN','N2C1_CN','N2C2_CN']
-    for name in CaNs:
-        ax.plot(Timepoints, Numbers[:,S[name]-1], label=name )
-
-elif Targ == 'CaM':
-    CaMs = ['N0C0','N0C1' ];
-    CaMs = ['N0C2','N1C0', 'N1C1','N1C2','N2C0', 'N2C1', 'N2C2'];
-    for cam in CaMs:
-        ax.plot(Timepoints, Numbers[:,S[cam]-1], label=cam )
-
-elif Targ == 'NMDAR':
-    NRs = ['NR_Glu','NR_O'];
-    for name in NRs:
-        ax.plot(Timepoints, Numbers[:,S[name]-1], label=name )
+ax.set_xlim([-2.5,12.5])
 
 ax.set_position([0.2,0.2,0.7,0.6])
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-plt.title(Targ)
+plt.title(title)
 plt.xlabel('Time (s)')
 plt.ylabel('Conc (uM)')
 #plt.ylabel('Number')
 hans, labs = ax.get_legend_handles_labels()
 ax.legend(handles=hans,labels=labs, frameon=False)
-plt.savefig(output_figfile_dir+'/'+ output_figfile_prefix + '_' + Targ + '.pdf')
-plt.savefig(output_figfile_dir+'/'+ output_figfile_prefix + '_' + Targ + '.png',dpi=150)
+plt.savefig(output_figfile_dir+'/'+ output_figfile_prefix + '_' + title + '.pdf')
+plt.savefig(output_figfile_dir+'/'+ output_figfile_prefix + '_' + title + '.png',dpi=150)
 plt.show()
+
+

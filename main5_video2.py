@@ -81,8 +81,10 @@ target_molecules = ['N0C1','N0C2','N1C0', 'N1C1','N1C2','N2C0', 'N2C1', 'N2C2']
 #target_molecules = ['N0C2', 'N1C1','N1C2','N2C0', 'N2C1', 'N2C2']
 target_molecules = ['N0C0_CN', 'N0C1_CN', 'N0C2_CN', 'N1C0_CN', 'N1C1_CN', 'N1C2_CN',\
             'N2C0_CN','N2C1_CN','N2C2_CN']
-target_molecules = ['Ca']
-col = (0,0,1)
+col=(0,1,0)
+
+#target_molecules = ['Ca']
+#col = (0,0,1)
 toffset = 20
 
 print('Plot.')
@@ -135,10 +137,5 @@ for lmfile in input_lm_files:
         image_id = image_id + 1
     hfile.close()
 
-# ffmpeg -r 10 -i pngs/test_%04d.png -pix_fmt yuv420p output.mp4
-
-
-
-### ffmpeg -f image2 -r 10 -i pngs/test3%04d.png -profile:v main test3.mp4 -pass 2
-
+# ffmpeg -r 10 -i pngs/test_%04d.png -pix_fmt yuv420p output_CaN.mp4
 
